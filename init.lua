@@ -1020,5 +1020,20 @@ require('lazy').setup({
   },
 })
 
+-------------- CUSTOM ADDITIONS TO init.lua ---------------------
+
+--- P4Open: runs p4 open on the current open buffer, if it corresponds to a real file
+vim.api.nvim_create_user_command('P4Open', function()
+  local file = vim.fn.expand('%')
+  if file ~= '' then
+    vim.cmd('!' .. 'p4 open ' .. vim.fn.shellescape(file))
+  else
+    print('No file in Buffer')
+  end
+end, {})
+vim.keymap.set('n', '<leader>po', ':P4Open<CR>', { desc = '[P]4 [O]pen' })
+
+vim.keymap.set('n', '<leader>x', ':bd<CR>', { desc = 'Close Buffer' })
+
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
