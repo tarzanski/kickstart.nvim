@@ -992,7 +992,7 @@ require('lazy').setup({
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
@@ -1034,6 +1034,51 @@ end, {})
 vim.keymap.set('n', '<leader>po', ':P4Open<CR>', { desc = '[P]4 [O]pen' })
 
 vim.keymap.set('n', '<leader>x', ':bd<CR>', { desc = 'Close Buffer' })
+
+---- Edits to NeoVim Pane navigation
+local opts = { noremap = true}
+vim.keymap.set("n", "<C-w>i", "<C-w>k", opts) -- Up
+vim.keymap.set("n", "<C-w>j", "<C-w>h", opts) -- Left
+vim.keymap.set("n", "<C-w>k", "<C-w>j", opts) -- Down
+
+---- Edits to tab functionality
+vim.opt.expandtab = true -- Use spaces instead of tabs
+
+vim.o.tabstop = 4 -- A TAB character looks like 4 spaces
+
+vim.o.expandtab = true -- Pressing the TAB key will insert spaces instead of a TAB character
+
+vim.o.softtabstop = 4 -- Number of spaces inserted instead of a TAB character
+
+vim.o.shiftwidth = 4 -- Number of spaces inserted when indenting
+
+-- Disable expensive features for large files
+vim.api.nvim_create_autocmd('BufReadPre', {
+  pattern = "*",
+  callback = function(args)
+    local file = args.file
+    local max_filesize = 50 * 1024 * 1024 -- 50 MiB
+    local stat = vim.loop.fs_stat(file)
+    if stat and stat.size > max_filesize then
+      vim.g.large_file = true -- create variable accessible by other plugins
+      vim.cmd("setlocal eventignore+=FileType")
+      vim.cmd("syntax off")
+      vim.cmd("setlocal noswapfile")
+      vim.cmd("setlocal noundofile")
+      vim.cmd("setlocal readonly")
+      vim.cmd("setlocal bufhidden=unload")
+      vim.cmd("setlocal nowrap")
+
+      -- Format size as MB with 1 decimal place
+      local size_mb = string.format("%.1f", stat.size / (1024 * 1024))
+      local msg = string.format("Large file detected (%.1f MB): disabling features and opening as Read-Only!", size_mb)
+
+      vim.schedule(function()
+        vim.api.nvim_echo({{msg, "WarningMsg"}}, false, {})
+      end)
+    end
+  end,
+})
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
